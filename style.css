@@ -64,7 +64,7 @@
   pointer-events:none;
 }
 
-/* FULL WRAP:  (открытие вверх+влево) */
+/* FULL WRAP: открытие вверх + влево */
 .mt-fullWrap{
   position:absolute;
   right:0;
