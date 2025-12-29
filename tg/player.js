@@ -2,6 +2,7 @@
 /* =========================================================
   MOLOTOV AUDIO PLAYER — TG FULLSCREEN (BETA)
   Автор: Van Molotov
+  UI: плеер + вкладки снизу (playlist/live/info)
 ========================================================= */
 (function(){
   const COMMON_COVER = "https://raw.githubusercontent.com/Vanmolotov/Van-Molotov/main/sq%20yt1.jpg";
@@ -26,7 +27,7 @@
   const AUTONEXT = true;
 
   // SAVE / RESTORE
-  const STORE_KEY = "mt_audio_player_state_tg_v1";
+  const STORE_KEY = "mt_audio_player_state_tg_v2";
   const SAVE_THROTTLE_MS = 900;
 
   // INFO
@@ -90,15 +91,17 @@
 
             <div class="mt-fullHead">
               <div class="mt-cover"><img data-full-cover alt=""></div>
+
               <div class="mt-meta">
                 <p class="mt-title" data-title>—</p>
                 <p class="mt-artist" data-artist>—</p>
               </div>
 
-              <button class="mt-ico" data-info-btn type="button" aria-label="Info">${ICONS.info}</button>
-              <button class="mt-ico" data-live-btn type="button" aria-label="Live">LIVE</button>
-              <button class="mt-ico" data-list-btn type="button" aria-label="Playlist">${ICONS.list}</button>
-              <button class="mt-ico" data-full-close type="button" aria-label="Close">×</button>
+              <div class="mt-actions">
+                <button class="mt-ico" data-info-btn type="button" aria-label="Info">${ICONS.info}</button>
+                <button class="mt-ico" data-live-btn type="button" aria-label="Live">LIVE</button>
+                <button class="mt-ico" data-list-btn type="button" aria-label="Playlist">${ICONS.list}</button>
+              </div>
             </div>
 
             <div class="mt-body">
@@ -128,60 +131,52 @@
                 </div>
               </div>
 
-              <audio preload="metadata"></audio>
-            </div>
-          </div>
-
-          <div class="mt-overlay" data-overlay></div>
-
-          <!-- PLAYLIST SHEET -->
-          <div class="mt-sheet" data-sheet="playlist">
-            <div class="mt-sheet__card">
-              <div class="mt-sheet__bg" data-sheet-bg></div>
-              <div class="mt-sheet__head">
-                <p class="mt-sheet__title">Плейлист</p>
-                <button class="mt-sheet__close" type="button" data-sheet-close>Закрыть</button>
-              </div>
-              <div class="mt-sheet__body" data-pl-inner></div>
-            </div>
-          </div>
-
-          <!-- INFO SHEET -->
-          <div class="mt-sheet" data-sheet="info">
-            <div class="mt-sheet__card">
-              <div class="mt-sheet__bg" data-sheet-bg></div>
-              <div class="mt-sheet__head">
-                <p class="mt-sheet__title">${escapeHtml(INFO_TITLE)}</p>
-                <button class="mt-sheet__close" type="button" data-sheet-close>Закрыть</button>
-              </div>
-              <div class="mt-sheet__body">
-                <div class="mt-infoText">${INFO_TEXT_HTML}</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- LIVE SHEET -->
-          <div class="mt-sheet" data-sheet="live">
-            <div class="mt-sheet__card">
-              <div class="mt-sheet__bg" data-sheet-bg></div>
-              <div class="mt-sheet__head">
-                <p class="mt-sheet__title">${escapeHtml(LIVE_TITLE)}</p>
-                <button class="mt-sheet__close" type="button" data-sheet-close>Закрыть</button>
-              </div>
-              <div class="mt-sheet__body">
-                <div class="mt-liveFrame">
-                  <div class="mt-liveFrame__box">
-                    <iframe
-                      data-live-iframe
-                      src=""
-                      allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
-                      frameborder="0"
-                      allowfullscreen
-                    ></iframe>
+              <!-- PANELS -->
+              <div class="mt-panels">
+                <div class="mt-panel" data-panel="playlist">
+                  <div class="mt-panel__card">
+                    <div class="mt-panel__head">
+                      <p class="mt-panel__title">Плейлист</p>
+                    </div>
+                    <div class="mt-panel__body" data-pl-inner></div>
                   </div>
-                  <p class="mt-liveHint">${escapeHtml(LIVE_HINT)}</p>
+                </div>
+
+                <div class="mt-panel" data-panel="info">
+                  <div class="mt-panel__card">
+                    <div class="mt-panel__head">
+                      <p class="mt-panel__title">${escapeHtml(INFO_TITLE)}</p>
+                    </div>
+                    <div class="mt-panel__body">
+                      <div class="mt-infoText">${INFO_TEXT_HTML}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-panel" data-panel="live">
+                  <div class="mt-panel__card">
+                    <div class="mt-panel__head">
+                      <p class="mt-panel__title">${escapeHtml(LIVE_TITLE)}</p>
+                    </div>
+                    <div class="mt-panel__body">
+                      <div class="mt-liveFrame">
+                        <div class="mt-liveFrame__box">
+                          <iframe
+                            data-live-iframe
+                            src=""
+                            allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
+                            frameborder="0"
+                            allowfullscreen
+                          ></iframe>
+                        </div>
+                        <p class="mt-liveHint">${escapeHtml(LIVE_HINT)}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <audio preload="metadata"></audio>
             </div>
           </div>
 
@@ -211,23 +206,17 @@
     const btnInfo   = shell.querySelector("[data-info-btn]");
     const btnLive   = shell.querySelector("[data-live-btn]");
 
-    const overlay   = shell.querySelector("[data-overlay]");
     const plInner   = shell.querySelector("[data-pl-inner]");
     const liveIframe= shell.querySelector("[data-live-iframe]");
 
     const vol       = shell.querySelector("[data-vol]");
     const volWrap   = vol.closest(".mt-vol");
 
-    const sheets = {
-      playlist: shell.querySelector('[data-sheet="playlist"]'),
-      info:     shell.querySelector('[data-sheet="info"]'),
-      live:     shell.querySelector('[data-sheet="live"]')
+    const panels = {
+      playlist: shell.querySelector('[data-panel="playlist"]'),
+      info:     shell.querySelector('[data-panel="info"]'),
+      live:     shell.querySelector('[data-panel="live"]')
     };
-
-    // backgrounds for sheets
-    shell.querySelectorAll("[data-sheet-bg]").forEach(bg=>{
-      bg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
-    });
 
     const restored = loadState();
     let idx = restored ? restored.idx : 0;
@@ -236,6 +225,7 @@
     vol.value = String(audio.volume);
 
     fullBg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
+    fullCov.src = COMMON_COVER;
 
     if(liveIframe){
       liveIframe.src = LIVE_VK_IFRAME_SRC || "";
@@ -300,7 +290,6 @@
         el.addEventListener("click", ()=>{
           const i = parseInt(el.getAttribute("data-pi"),10);
           setTrack(i, true, null);
-          closeSheets();
         });
       });
     }
@@ -311,7 +300,6 @@
 
       elTitle.textContent  = (t.title || "—").toUpperCase();
       elArtist.textContent = t.artist || "—";
-
       fullCov.src = COMMON_COVER;
 
       safeSetSrc(t.src);
@@ -354,32 +342,17 @@
       saveNow();
     }
 
-    // ===== Sheets logic
-    function closeSheets(){
-      overlay.classList.remove("is-open");
-      Object.values(sheets).forEach(s => s && s.classList.remove("is-open"));
-    }
-    function openSheet(name){
-      const s = sheets[name];
-      if(!s) return;
-      closeSheets();
-      overlay.classList.add("is-open");
-      s.classList.add("is-open");
-    }
-    function toggleSheet(name){
-      const s = sheets[name];
-      if(!s) return;
-      const isOpen = s.classList.contains("is-open");
-      if(isOpen) closeSheets();
-      else openSheet(name);
-    }
+    // ===== Tabs logic (нижний блок)
+    function setTab(name){
+      Object.keys(panels).forEach(k=>{
+        if(panels[k]) panels[k].classList.toggle("is-active", k === name);
+      });
 
-    // close buttons
-    shell.querySelectorAll("[data-sheet-close]").forEach(btn=>{
-      btn.addEventListener("click", (e)=>{ e.stopPropagation(); closeSheets(); });
-    });
-
-    overlay.addEventListener("click", closeSheets);
+      // подсветка активной кнопки
+      btnList.classList.toggle("is-active", name === "playlist");
+      btnInfo.classList.toggle("is-active", name === "info");
+      btnLive.classList.toggle("is-active", name === "live");
+    }
 
     // ===== Controls
     btnPlay.addEventListener("click", (e)=>{ e.stopPropagation(); togglePlay(); });
@@ -391,9 +364,9 @@
     btnNext.addEventListener("click", ()=> setTrack(idx+1,true,null));
     btnPrev.addEventListener("click", ()=> setTrack(idx-1,true,null));
 
-    btnList.addEventListener("click", (e)=>{ e.stopPropagation(); toggleSheet("playlist"); });
-    btnInfo.addEventListener("click", (e)=>{ e.stopPropagation(); toggleSheet("info"); });
-    btnLive.addEventListener("click", (e)=>{ e.stopPropagation(); toggleSheet("live"); });
+    btnList.addEventListener("click", (e)=>{ e.stopPropagation(); setTab("playlist"); });
+    btnInfo.addEventListener("click", (e)=>{ e.stopPropagation(); setTab("info"); });
+    btnLive.addEventListener("click", (e)=>{ e.stopPropagation(); setTab("live"); });
 
     // click seek + swipe seek
     function seekByClientX(clientX){
@@ -407,9 +380,7 @@
       }
     }
 
-    elBar.addEventListener("click",(e)=>{
-      seekByClientX(e.clientX);
-    });
+    elBar.addEventListener("click",(e)=>{ seekByClientX(e.clientX); });
 
     let seeking = false;
     elBar.addEventListener("pointerdown", (e)=>{
@@ -501,11 +472,14 @@
     window.addEventListener("beforeunload", saveNow);
 
     // init
-    closeSheets();
     if(restored) setTrack(restored.idx, false, restored.time);
     else setTrack(0,false,null);
+
     renderPlaylist();
     setPlayIcon();
+
+    // по умолчанию: playlist
+    setTab("playlist");
 
     return true;
   }
