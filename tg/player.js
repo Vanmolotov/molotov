@@ -1,12 +1,11 @@
+/* /tg/player.js */
+/* =========================================================
+  MOLOTOV AUDIO PLAYER — TG FULLSCREEN (BETA)
+  Автор: Van Molotov
+========================================================= */
 (function(){
   const COMMON_COVER = "https://raw.githubusercontent.com/Vanmolotov/Van-Molotov/main/sq%20yt1.jpg";
-
   const PLAYER_BG   = "https://raw.githubusercontent.com/Vanmolotov/Van-Molotov/main/sq%20yt1.jpg";
-  const PLAYLIST_BG = "https://raw.githubusercontent.com/Vanmolotov/Van-Molotov/main/site%20%281%29.jpg";
-
-  const MARQUEE_TEXT = "SBS HANGOVER 2026 - 2 ЯНВАРЯ - ПЕРМЬ - <b class='mt-mq-link'>КЛИКАЙ СЮДА</b> ЧТОБЫ УЗНАТЬ БОЛЬШЕ";
-  const MARQUEE_URL  = "https://sbsrussia.ru";
-  const MARQUEE_NEW_TAB = true;
 
   const TRACKS = [
     { title:"CUTRIN - SBS FEST MIX 2024", artist:"Molotov х Sight By Sight", src:"https://pub-d2a415803b364284a1985f355a9cd244.r2.dev/tracks/Cutrin.mp3" },
@@ -26,16 +25,19 @@
   const START_VOLUME = 0.85;
   const AUTONEXT = true;
 
-  const STORE_KEY = "mt_audio_player_state_v2";
+  // SAVE / RESTORE
+  const STORE_KEY = "mt_audio_player_state_tg_v1";
   const SAVE_THROTTLE_MS = 900;
 
+  // INFO
   const INFO_TITLE = "ИНФО / АВТОРСКИЕ ПРАВА";
   const INFO_TEXT_HTML =
-    "Плеер — <b>MOLOTOV AUDIO PLAYER (BETA v2)</b>. Автор: <b>Van Molotov</b>.<br><br>" +
+    "Плеер — <b>MOLOTOV AUDIO PLAYER (BETA)</b>. Автор: <b>Van Molotov</b>.<br><br>" +
     "Материалы используются в <b>некоммерческих целях</b> (для ознакомления/комьюнити).<br>" +
     "Если у правообладателя есть вопросы или запрос на удаление — <b>удалим контент</b> по первому обращению.<br><br>" +
     "Связь: <a href='mailto:support@molotov.store'>support@molotov.store</a>";
 
+  // LIVE
   const LIVE_TITLE = "ПОСЛЕДНИЙ СТРИМ / VK";
   const LIVE_VK_IFRAME_SRC = "https://vk.com/video_ext.php?oid=-38901360&id=456240842&autoplay=1";
   const LIVE_HINT = "MOLOTOV LIVE®.";
@@ -43,8 +45,6 @@
   const ICONS = {
     play: `<svg viewBox="0 0 24 24"><path d="M8 5v14l12-7z"/></svg>`,
     pause:`<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>`,
-    open: `<svg viewBox="0 0 24 24"><path d="m7.41 10.59 4.59 4.58 4.59-4.58L18 12l-6 6-6-6z"/></svg>`,
-    close:`<svg viewBox="0 0 24 24"><path d="m7.41 13.41 4.59-4.58 4.59 4.58L18 12l-6-6-6 6z"/></svg>`,
     prev: `<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM20 18 9 12l11-6z"/></svg>`,
     next: `<svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM4 18l11-6L4 6z"/></svg>`,
     stop: `<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>`,
@@ -79,66 +79,11 @@
     if(root.dataset.mounted === "1") return true;
     root.dataset.mounted = "1";
 
-    const uid = "mtAudio_" + Math.random().toString(16).slice(2);
+    const uid = "mtAudioTG_" + Math.random().toString(16).slice(2);
 
     root.innerHTML = `
       <div class="mt-shell" id="${uid}">
-        <div class="mt-mini">
-          <div class="mt-mini__bg" data-mini-bg></div>
-          <div class="mt-mini__row">
-            <div class="mt-cover"><img data-mini-cover alt=""></div>
-            <button class="mt-ico" data-mini-play type="button" aria-label="Play/Pause">${ICONS.play}</button>
-            <button class="mt-ico" data-mini-open type="button" aria-label="Open">${ICONS.open}</button>
-          </div>
-        </div>
-
         <div class="mt-fullWrap">
-          <div class="mt-info" data-info>
-            <div class="mt-info__bg" data-info-bg></div>
-            <div class="mt-info__inner">
-              <p class="mt-info__title">${escapeHtml(INFO_TITLE)}</p>
-              <p class="mt-info__text">${INFO_TEXT_HTML}</p>
-            </div>
-          </div>
-
-          <div class="mt-live" data-live>
-            <div class="mt-live__bg" data-live-bg></div>
-            <div class="mt-live__inner">
-              <div class="mt-live__head">
-                <p class="mt-live__title">${escapeHtml(LIVE_TITLE)}</p>
-                <button class="mt-live__collapse" type="button" data-live-collapse>Свернуть</button>
-              </div>
-
-              <div class="mt-live__frame">
-                <iframe
-                  data-live-iframe
-                  src=""
-                  width="1280"
-                  height="720"
-                  style="background-color:#000"
-                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
-                  frameborder="0"
-                  allowfullscreen
-                ></iframe>
-              </div>
-
-              <p class="mt-live__hint">${escapeHtml(LIVE_HINT)}</p>
-            </div>
-          </div>
-
-          <div class="mt-playlist" data-playlist>
-            <div class="mt-playlist__bg" data-pl-bg></div>
-
-            <div class="mt-marquee" data-marquee>
-              <a class="mt-marquee__a" data-marquee-a href="#" rel="noopener">
-                <span class="mt-marquee__track" data-marquee-track>
-                  <span></span><span></span>
-                </span>
-              </a>
-            </div>
-
-            <div class="mt-playlist__inner" data-pl-inner></div>
-          </div>
 
           <div class="mt-full">
             <div class="mt-full__bg" data-full-bg></div>
@@ -152,8 +97,8 @@
 
               <button class="mt-ico" data-info-btn type="button" aria-label="Info">${ICONS.info}</button>
               <button class="mt-ico" data-live-btn type="button" aria-label="Live">LIVE</button>
-              <button class="mt-ico" data-list type="button" aria-label="Playlist">${ICONS.list}</button>
-              <button class="mt-ico" data-full-close type="button" aria-label="Close">${ICONS.close}</button>
+              <button class="mt-ico" data-list-btn type="button" aria-label="Playlist">${ICONS.list}</button>
+              <button class="mt-ico" data-full-close type="button" aria-label="Close">×</button>
             </div>
 
             <div class="mt-body">
@@ -169,7 +114,7 @@
                 <div class="mt-controls">
                   <div class="mt-left">
                     <button class="mt-btn" data-prev type="button" aria-label="Prev">${ICONS.prev}</button>
-                    <button class="mt-btn" data-full-play type="button" aria-label="Play/Pause">${ICONS.play}</button>
+                    <button class="mt-btn" data-play type="button" aria-label="Play/Pause">${ICONS.play}</button>
                     <button class="mt-btn" data-stop type="button" aria-label="Stop">${ICONS.stop}</button>
                     <button class="mt-btn" data-next type="button" aria-label="Next">${ICONS.next}</button>
                   </div>
@@ -186,6 +131,60 @@
               <audio preload="metadata"></audio>
             </div>
           </div>
+
+          <div class="mt-overlay" data-overlay></div>
+
+          <!-- PLAYLIST SHEET -->
+          <div class="mt-sheet" data-sheet="playlist">
+            <div class="mt-sheet__card">
+              <div class="mt-sheet__bg" data-sheet-bg></div>
+              <div class="mt-sheet__head">
+                <p class="mt-sheet__title">Плейлист</p>
+                <button class="mt-sheet__close" type="button" data-sheet-close>Закрыть</button>
+              </div>
+              <div class="mt-sheet__body" data-pl-inner></div>
+            </div>
+          </div>
+
+          <!-- INFO SHEET -->
+          <div class="mt-sheet" data-sheet="info">
+            <div class="mt-sheet__card">
+              <div class="mt-sheet__bg" data-sheet-bg></div>
+              <div class="mt-sheet__head">
+                <p class="mt-sheet__title">${escapeHtml(INFO_TITLE)}</p>
+                <button class="mt-sheet__close" type="button" data-sheet-close>Закрыть</button>
+              </div>
+              <div class="mt-sheet__body">
+                <div class="mt-infoText">${INFO_TEXT_HTML}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LIVE SHEET -->
+          <div class="mt-sheet" data-sheet="live">
+            <div class="mt-sheet__card">
+              <div class="mt-sheet__bg" data-sheet-bg></div>
+              <div class="mt-sheet__head">
+                <p class="mt-sheet__title">${escapeHtml(LIVE_TITLE)}</p>
+                <button class="mt-sheet__close" type="button" data-sheet-close>Закрыть</button>
+              </div>
+              <div class="mt-sheet__body">
+                <div class="mt-liveFrame">
+                  <div class="mt-liveFrame__box">
+                    <iframe
+                      data-live-iframe
+                      src=""
+                      allow="autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock;"
+                      frameborder="0"
+                      allowfullscreen
+                    ></iframe>
+                  </div>
+                  <p class="mt-liveHint">${escapeHtml(LIVE_HINT)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     `;
@@ -193,17 +192,10 @@
     const shell = root.querySelector("#"+uid);
     const audio = shell.querySelector("audio");
 
-    const miniBg    = shell.querySelector("[data-mini-bg]");
-    const miniCov   = shell.querySelector("[data-mini-cover]");
-    const miniPlay  = shell.querySelector("[data-mini-play]");
-    const miniOpen  = shell.querySelector("[data-mini-open]");
-
     const fullBg    = shell.querySelector("[data-full-bg]");
     const fullCov   = shell.querySelector("[data-full-cover]");
     const elTitle   = shell.querySelector("[data-title]");
     const elArtist  = shell.querySelector("[data-artist]");
-    const fullPlay  = shell.querySelector("[data-full-play]");
-    const fullClose = shell.querySelector("[data-full-close]");
 
     const elBar     = shell.querySelector("[data-bar]");
     const elFill    = shell.querySelector("[data-fill]");
@@ -213,26 +205,29 @@
     const btnPrev   = shell.querySelector("[data-prev]");
     const btnNext   = shell.querySelector("[data-next]");
     const btnStop   = shell.querySelector("[data-stop]");
-    const btnList   = shell.querySelector("[data-list]");
-    const elList    = shell.querySelector("[data-playlist]");
-    const plBg      = shell.querySelector("[data-pl-bg]");
+    const btnPlay   = shell.querySelector("[data-play]");
+
+    const btnList   = shell.querySelector("[data-list-btn]");
+    const btnInfo   = shell.querySelector("[data-info-btn]");
+    const btnLive   = shell.querySelector("[data-live-btn]");
+
+    const overlay   = shell.querySelector("[data-overlay]");
     const plInner   = shell.querySelector("[data-pl-inner]");
+    const liveIframe= shell.querySelector("[data-live-iframe]");
+
     const vol       = shell.querySelector("[data-vol]");
     const volWrap   = vol.closest(".mt-vol");
 
-    const infoBtn   = shell.querySelector("[data-info-btn]");
-    const infoBox   = shell.querySelector("[data-info]");
-    const infoBg    = shell.querySelector("[data-info-bg]");
+    const sheets = {
+      playlist: shell.querySelector('[data-sheet="playlist"]'),
+      info:     shell.querySelector('[data-sheet="info"]'),
+      live:     shell.querySelector('[data-sheet="live"]')
+    };
 
-    const liveBtn       = shell.querySelector("[data-live-btn]");
-    const liveBox       = shell.querySelector("[data-live]");
-    const liveBg        = shell.querySelector("[data-live-bg]");
-    const liveIframe    = shell.querySelector("[data-live-iframe]");
-    const liveCollapse  = shell.querySelector("[data-live-collapse]");
-
-    const mqA     = shell.querySelector("[data-marquee-a]");
-    const mqTrack = shell.querySelector("[data-marquee-track]");
-    const mqSpans = mqTrack ? mqTrack.querySelectorAll("span") : [];
+    // backgrounds for sheets
+    shell.querySelectorAll("[data-sheet-bg]").forEach(bg=>{
+      bg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
+    });
 
     const restored = loadState();
     let idx = restored ? restored.idx : 0;
@@ -240,20 +235,10 @@
     audio.volume = restored ? restored.vol : START_VOLUME;
     vol.value = String(audio.volume);
 
-    miniBg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
     fullBg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
-    plBg.style.backgroundImage   = PLAYLIST_BG ? `url("${PLAYLIST_BG}")` : "none";
-    if(infoBg) infoBg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
-    if(liveBg) liveBg.style.backgroundImage = PLAYER_BG ? `url("${PLAYER_BG}")` : "none";
 
-    if(liveIframe){ liveIframe.src = LIVE_VK_IFRAME_SRC || ""; }
-
-    if (mqA && mqSpans && mqSpans.length){
-      mqA.href = MARQUEE_URL || "#";
-      if (MARQUEE_NEW_TAB) mqA.target = "_blank";
-      const txt = (MARQUEE_TEXT || "").trim();
-      mqSpans[0].innerHTML = txt;
-      mqSpans[1].innerHTML = txt;
+    if(liveIframe){
+      liveIframe.src = LIVE_VK_IFRAME_SRC || "";
     }
 
     const fmtTime = (s)=>{
@@ -271,38 +256,8 @@
       audio.load();
     }
 
-    function setPlayIcons(){
-      const icon = audio.paused ? ICONS.play : ICONS.pause;
-      miniPlay.innerHTML = icon;
-      fullPlay.innerHTML = icon;
-    }
-
-    function setOpen(v){
-      shell.classList.toggle("is-open", !!v);
-      if(!v){
-        elList.classList.remove("is-open");
-        if(infoBox) infoBox.classList.remove("is-open");
-        if(liveBox) liveBox.classList.remove("is-open");
-      }
-    }
-
-    function renderPlaylist(){
-      plInner.innerHTML = TRACKS.map((t,i)=>`
-        <div class="mt-playlist__item ${i===idx ? 'is-active' : ''}" data-pi="${i}">
-          <div class="mt-playlist__left">
-            <p class="mt-playlist__t">${escapeHtml((t.title||"—").toUpperCase())}</p>
-            <p class="mt-playlist__a">${escapeHtml(t.artist||"—")}</p>
-          </div>
-          <div class="mt-playlist__badge">${(i===idx && !audio.paused) ? "PLAYING" : "PLAY"}</div>
-        </div>
-      `).join("");
-
-      plInner.querySelectorAll("[data-pi]").forEach(el=>{
-        el.addEventListener("click", ()=>{
-          const i = parseInt(el.getAttribute("data-pi"),10);
-          setTrack(i, true, null);
-        });
-      });
+    function setPlayIcon(){
+      btnPlay.innerHTML = audio.paused ? ICONS.play : ICONS.pause;
     }
 
     function updateProgress(){
@@ -330,14 +285,33 @@
       }, SAVE_THROTTLE_MS);
     }
 
+    function renderPlaylist(){
+      plInner.innerHTML = TRACKS.map((t,i)=>`
+        <div class="mt-playlist__item ${i===idx ? 'is-active' : ''}" data-pi="${i}">
+          <div class="mt-playlist__left">
+            <p class="mt-playlist__t">${escapeHtml((t.title||"—").toUpperCase())}</p>
+            <p class="mt-playlist__a">${escapeHtml(t.artist||"—")}</p>
+          </div>
+          <div class="mt-playlist__badge">${(i===idx && !audio.paused) ? "PLAYING" : "PLAY"}</div>
+        </div>
+      `).join("");
+
+      plInner.querySelectorAll("[data-pi]").forEach(el=>{
+        el.addEventListener("click", ()=>{
+          const i = parseInt(el.getAttribute("data-pi"),10);
+          setTrack(i, true, null);
+          closeSheets();
+        });
+      });
+    }
+
     function setTrack(i, autoplay=false, restoreTime=null){
       idx = (i + TRACKS.length) % TRACKS.length;
       const t = TRACKS[idx];
 
-      elTitle.textContent = (t.title || "—").toUpperCase();
+      elTitle.textContent  = (t.title || "—").toUpperCase();
       elArtist.textContent = t.artist || "—";
 
-      miniCov.src = COMMON_COVER;
       fullCov.src = COMMON_COVER;
 
       safeSetSrc(t.src);
@@ -347,7 +321,7 @@
       elTime.textContent="0:00";
 
       renderPlaylist();
-      setPlayIcons();
+      setPlayIcon();
 
       if(Number.isFinite(restoreTime) && restoreTime > 0){
         const wanted = Math.max(0, restoreTime);
@@ -375,80 +349,53 @@
       }else{
         audio.pause();
       }
-      setPlayIcons();
+      setPlayIcon();
       renderPlaylist();
       saveNow();
     }
 
-    function togglePlaylist(){
-      elList.classList.toggle("is-open");
-      if(infoBox) infoBox.classList.remove("is-open");
-      if(liveBox) liveBox.classList.remove("is-open");
+    // ===== Sheets logic
+    function closeSheets(){
+      overlay.classList.remove("is-open");
+      Object.values(sheets).forEach(s => s && s.classList.remove("is-open"));
+    }
+    function openSheet(name){
+      const s = sheets[name];
+      if(!s) return;
+      closeSheets();
+      overlay.classList.add("is-open");
+      s.classList.add("is-open");
+    }
+    function toggleSheet(name){
+      const s = sheets[name];
+      if(!s) return;
+      const isOpen = s.classList.contains("is-open");
+      if(isOpen) closeSheets();
+      else openSheet(name);
     }
 
-    function toggleInfo(){
-      if(!infoBox) return;
-      infoBox.classList.toggle("is-open");
-      elList.classList.remove("is-open");
-      if(liveBox) liveBox.classList.remove("is-open");
-    }
+    // close buttons
+    shell.querySelectorAll("[data-sheet-close]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{ e.stopPropagation(); closeSheets(); });
+    });
 
-    function toggleLive(){
-      if(!liveBox) return;
-      liveBox.classList.toggle("is-open");
-      elList.classList.remove("is-open");
-      if(infoBox) infoBox.classList.remove("is-open");
-    }
+    overlay.addEventListener("click", closeSheets);
 
-    function closePopups(){
-      elList.classList.remove("is-open");
-      if(infoBox) infoBox.classList.remove("is-open");
-      if(liveBox) liveBox.classList.remove("is-open");
-    }
-
-    // --- handlers ---
-    miniPlay.addEventListener("click",(e)=>{ e.stopPropagation(); togglePlay(); });
-    miniOpen.addEventListener("click",(e)=>{ e.stopPropagation(); setOpen(true); });
-
-    fullPlay.addEventListener("click",(e)=>{ e.stopPropagation(); togglePlay(); });
-    fullClose.addEventListener("click",(e)=>{ e.stopPropagation(); setOpen(false); });
-    btnList.addEventListener("click",(e)=>{ e.stopPropagation(); togglePlaylist(); });
-
-    if(infoBtn){
-      infoBtn.addEventListener("click",(e)=>{ e.stopPropagation(); toggleInfo(); });
-    }
-    if(liveBtn){
-      liveBtn.addEventListener("click",(e)=>{ e.stopPropagation(); toggleLive(); });
-    }
-    if(liveCollapse){
-      liveCollapse.addEventListener("click",(e)=>{
-        e.stopPropagation();
-        if(liveBox) liveBox.classList.remove("is-open");
-      });
-    }
-
+    // ===== Controls
+    btnPlay.addEventListener("click", (e)=>{ e.stopPropagation(); togglePlay(); });
     btnStop.addEventListener("click", ()=>{
       audio.pause(); audio.currentTime=0;
-      updateProgress(); setPlayIcons(); renderPlaylist();
+      updateProgress(); setPlayIcon(); renderPlaylist();
       saveNow();
     });
     btnNext.addEventListener("click", ()=> setTrack(idx+1,true,null));
     btnPrev.addEventListener("click", ()=> setTrack(idx-1,true,null));
 
-    // click seek
-    elBar.addEventListener("click",(e)=>{
-      const rect=elBar.getBoundingClientRect();
-      const x=Math.min(Math.max(0,e.clientX-rect.left),rect.width);
-      const ratio=rect.width ? (x/rect.width) : 0;
-      if(isFinite(audio.duration)&&audio.duration>0){
-        audio.currentTime=ratio*audio.duration;
-        updateProgress();
-        scheduleSave();
-      }
-    });
+    btnList.addEventListener("click", (e)=>{ e.stopPropagation(); toggleSheet("playlist"); });
+    btnInfo.addEventListener("click", (e)=>{ e.stopPropagation(); toggleSheet("info"); });
+    btnLive.addEventListener("click", (e)=>{ e.stopPropagation(); toggleSheet("live"); });
 
-    // SWIPE SEEK
-    let seeking = false;
+    // click seek + swipe seek
     function seekByClientX(clientX){
       const rect = elBar.getBoundingClientRect();
       const x = Math.min(Math.max(0, clientX - rect.left), rect.width);
@@ -459,6 +406,12 @@
         scheduleSave();
       }
     }
+
+    elBar.addEventListener("click",(e)=>{
+      seekByClientX(e.clientX);
+    });
+
+    let seeking = false;
     elBar.addEventListener("pointerdown", (e)=>{
       seeking = true;
       try{ elBar.setPointerCapture(e.pointerId); }catch(_){}
@@ -468,8 +421,8 @@
       if(!seeking) return;
       seekByClientX(e.clientX);
     });
-    elBar.addEventListener("pointerup", ()=>{ seeking = false; });
-    elBar.addEventListener("pointercancel", ()=>{ seeking = false; });
+    elBar.addEventListener("pointerup", ()=>{ seeking=false; });
+    elBar.addEventListener("pointercancel", ()=>{ seeking=false; });
 
     elBar.addEventListener("touchstart", (e)=>{
       seeking = true;
@@ -484,24 +437,23 @@
       e.preventDefault();
     }, {passive:false});
 
-    elBar.addEventListener("touchend", ()=>{ seeking = false; }, {passive:true});
-    elBar.addEventListener("touchcancel", ()=>{ seeking = false; }, {passive:true});
+    elBar.addEventListener("touchend", ()=>{ seeking=false; }, {passive:true});
+    elBar.addEventListener("touchcancel", ()=>{ seeking=false; }, {passive:true});
 
-    // volume
+    // volume input + swipe volume on wrapper
     vol.addEventListener("input", ()=>{
-      audio.volume=Math.min(1,Math.max(0,parseFloat(vol.value||"0")));
+      audio.volume = clamp(parseFloat(vol.value||"0"), 0, 1);
       scheduleSave();
     });
 
-    // SWIPE VOLUME
     function setVolume(v){
-      const vv = Math.min(1, Math.max(0, v));
+      const vv = clamp(v, 0, 1);
       audio.volume = vv;
       vol.value = String(vv);
       scheduleSave();
     }
-    let volSwipe = { active:false, startX:0, startV:0 };
 
+    let volSwipe = { active:false, startX:0, startV:0 };
     if(volWrap){
       volWrap.addEventListener("pointerdown", (e)=>{
         volSwipe.active = true;
@@ -512,7 +464,7 @@
       volWrap.addEventListener("pointermove", (e)=>{
         if(!volSwipe.active) return;
         const dx = e.clientX - volSwipe.startX;
-        const delta = dx / 140;
+        const delta = dx / 160;
         setVolume((volSwipe.startV || 0) + delta);
       });
       volWrap.addEventListener("pointerup", ()=>{ volSwipe.active = false; });
@@ -531,7 +483,7 @@
         const t = e.touches && e.touches[0];
         if(!t) return;
         const dx = t.clientX - volSwipe.startX;
-        const delta = dx / 140;
+        const delta = dx / 160;
         setVolume((volSwipe.startV || 0) + delta);
         e.preventDefault();
       }, {passive:false});
@@ -542,30 +494,18 @@
 
     audio.addEventListener("loadedmetadata", updateProgress);
     audio.addEventListener("timeupdate", ()=>{ updateProgress(); scheduleSave(); });
-    audio.addEventListener("play", ()=>{ setPlayIcons(); renderPlaylist(); saveNow(); });
-    audio.addEventListener("pause", ()=>{ setPlayIcons(); renderPlaylist(); saveNow(); });
-    audio.addEventListener("ended", ()=>{
-      if(AUTONEXT) setTrack(idx+1,true,null);
-      saveNow();
-    });
-
-    document.addEventListener("click",(e)=>{
-      if(!shell.contains(e.target)) closePopups();
-    });
-
-    elList.addEventListener("click",(e)=> e.stopPropagation());
-    if(infoBox) infoBox.addEventListener("click",(e)=> e.stopPropagation());
-    if(liveBox) liveBox.addEventListener("click",(e)=> e.stopPropagation());
+    audio.addEventListener("play", ()=>{ setPlayIcon(); renderPlaylist(); saveNow(); });
+    audio.addEventListener("pause", ()=>{ setPlayIcon(); renderPlaylist(); saveNow(); });
+    audio.addEventListener("ended", ()=>{ if(AUTONEXT) setTrack(idx+1,true,null); saveNow(); });
 
     window.addEventListener("beforeunload", saveNow);
 
-    setOpen(false);
-
+    // init
+    closeSheets();
     if(restored) setTrack(restored.idx, false, restored.time);
     else setTrack(0,false,null);
-
     renderPlaylist();
-    setPlayIcons();
+    setPlayIcon();
 
     return true;
   }
